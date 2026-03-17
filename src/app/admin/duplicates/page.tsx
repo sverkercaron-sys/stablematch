@@ -1,10 +1,11 @@
 import Link from "next/link";
 
 import { DuplicateActions } from "@/components/duplicate-actions";
-import { getDuplicateCandidates } from "@/lib/facilities";
+import { getDuplicateCandidates, getResolvedDuplicateDecisions } from "@/lib/facilities";
 
 export default async function DuplicatesPage() {
   const candidates = await getDuplicateCandidates();
+  const decisions = await getResolvedDuplicateDecisions();
 
   return (
     <div className="pageStack">
@@ -66,6 +67,28 @@ export default async function DuplicatesPage() {
                 primaryId={candidate.primaryId}
                 secondaryId={candidate.secondaryId}
               />
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="resultsPanel">
+        <div className="resultsHeader">
+          <h2>Historik</h2>
+          <p>Visar de senaste dublettbesluten så att teamet kan följa vad som redan avgjorts.</p>
+        </div>
+        <div className="duplicateHistoryList">
+          {decisions.map((decision) => (
+            <article key={decision.pairKey} className="duplicateHistoryCard">
+              <strong>
+                {decision.leftName} / {decision.rightName}
+              </strong>
+              <span>
+                {decision.decision === "merged"
+                  ? `Merged, behöll ${decision.winnerName ?? "okänd vinnare"}`
+                  : "Markerad som inte dublett"}
+              </span>
+              <span>{new Date(decision.createdAt).toLocaleString("sv-SE")}</span>
             </article>
           ))}
         </div>

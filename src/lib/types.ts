@@ -86,3 +86,12 @@ export type DuplicateCandidate = {
   reason: string;
   distanceKm: number | null;
 };
+
+export type DuplicateDecisionItem = {
+  pairKey: string;
+  decision: "not_duplicate" | "merged";
+  createdAt: string;
+  winnerName: string | null;
+  leftName: string;
+  rightName: string;
+};

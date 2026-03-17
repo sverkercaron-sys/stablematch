@@ -426,6 +426,24 @@ button {
   margin-top: 14px;
 }
 
+.duplicateHistoryList {
+  display: grid;
+  gap: 12px;
+}
+
+.duplicateHistoryCard {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--surface-strong);
+  border: 1px solid rgba(31, 42, 31, 0.08);
+}
+
+.duplicateHistoryCard span {
+  color: var(--muted);
+}
+
 .duplicateSide {
   display: grid;
   gap: 8px;

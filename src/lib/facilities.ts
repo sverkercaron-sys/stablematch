@@ -1,6 +1,12 @@
 import { mockFacilities } from "@/lib/mock-data";
 import { createServiceSupabaseClient } from "@/lib/supabase";
-import { DuplicateCandidate, Facility, ReviewQueueItem, SearchFilters } from "@/lib/types";
+import {
+  DuplicateCandidate,
+  DuplicateDecisionItem,
+  Facility,
+  ReviewQueueItem,
+  SearchFilters
+} from "@/lib/types";
 
 const defaultFilters: SearchFilters = {
   q: "",
@@ -378,4 +384,56 @@ export async function getDuplicateCandidates(): Promise<DuplicateCandidate[]> {
   }
 
   return candidates.sort((left, right) => right.score - left.score).slice(0, 100);
+}
+
+type DuplicateDecisionRow = {
+  pair_key: string;
+  decision: "not_duplicate" | "merged";
+  winner_facility_id: string | null;
+  left_facility_id: string;
+  right_facility_id: string;
+  created_at: string;
+};
+
+export async function getResolvedDuplicateDecisions(): Promise<DuplicateDecisionItem[]> {
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data: decisions, error } = await supabase
+    .from("duplicate_decisions")
+    .select("pair_key, decision, winner_facility_id, left_facility_id, right_facility_id, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error || !decisions?.length) {
+    return [];
+  }
+
+  const ids = new Set<string>();
+  for (const row of decisions as DuplicateDecisionRow[]) {
+    ids.add(row.left_facility_id);
+    ids.add(row.right_facility_id);
+    if (row.winner_facility_id) {
+      ids.add(row.winner_facility_id);
+    }
+  }
+
+  const { data: facilities } = await supabase
+    .from("facilities")
+    .select("id, name")
+    .in("id", [...ids]);
+
+  const nameById = new Map((facilities ?? []).map((row) => [row.id as string, row.name as string]));
+
+  return (decisions as DuplicateDecisionRow[]).map((row) => ({
+    pairKey: row.pair_key,
+    decision: row.decision,
+    createdAt: row.created_at,
+    winnerName: row.winner_facility_id ? nameById.get(row.winner_facility_id) ?? null : null,
+    leftName: nameById.get(row.left_facility_id) ?? row.left_facility_id,
+    rightName: nameById.get(row.right_facility_id) ?? row.right_facility_id
+  }));
 }

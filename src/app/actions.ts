@@ -136,6 +136,12 @@ export async function resolveDuplicate(formData: FormData) {
   if (actionType === "merge" && winnerId) {
     const loserId = winnerId === primaryId ? secondaryId : primaryId;
 
+    const { data: winner } = await supabase
+      .from("facilities")
+      .select("name")
+      .eq("id", winnerId)
+      .maybeSingle();
+
     await supabase.from("duplicate_decisions").upsert(
       {
         pair_key: pairKey,
@@ -146,6 +152,15 @@ export async function resolveDuplicate(formData: FormData) {
       },
       { onConflict: "pair_key" }
     );
+
+    await supabase.from("claims").update({ facility_id: winnerId }).eq("facility_id", loserId);
+    await supabase
+      .from("applications")
+      .update({
+        facility_id: winnerId,
+        facility_name: winner?.name ?? "Merged facility"
+      })
+      .eq("facility_id", loserId);
 
     await supabase
       .from("facilities")
