@@ -47,3 +47,23 @@ The importer:
 - avoids overwriting `claimed` and `verified` records when the slug matches
 
 `OVERPASS_API_URL` can be overridden in `.env.local` if you need a different Overpass endpoint.
+
+## Geofabrik import
+
+Preferred seed path:
+
+```bash
+npm run import:geofabrik
+```
+
+The Geofabrik importer:
+
+- downloads the official Sweden `.osm.pbf` extract once and caches it in `./data`
+- stream-parses the file locally instead of querying Overpass live
+- currently imports horse-related `node` features as the first robust pass
+- upserts into `source_records` and `facilities`
+
+Environment overrides:
+
+- `GEOFABRIK_PBF_URL`
+- `GEOFABRIK_PBF_PATH`

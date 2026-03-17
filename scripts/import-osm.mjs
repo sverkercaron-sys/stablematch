@@ -1,7 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 
-const OVERPASS_API_URL =
-  process.env.OVERPASS_API_URL ?? "https://overpass-api.de/api/interpreter";
+const OVERPASS_API_URLS = (
+  process.env.OVERPASS_API_URLS ??
+  process.env.OVERPASS_API_URL ??
+  "https://overpass-api.de/api/interpreter,https://overpass.kumi.systems/api/interpreter"
+)
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -17,18 +23,28 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   }
 });
 
-const OVERPASS_QUERY = `
-[out:json][timeout:120];
-area["ISO3166-1"="SE"][admin_level=2]->.searchArea;
+const SWEDEN_BBOXES = [
+  [55.0, 10.5, 58.8, 14.8],
+  [55.0, 14.8, 58.8, 24.5],
+  [58.8, 10.5, 62.4, 17.6],
+  [58.8, 17.6, 62.4, 24.5],
+  [62.4, 10.5, 66.0, 19.5],
+  [66.0, 13.0, 69.5, 24.5]
+];
+
+function buildOverpassQuery([south, west, north, east]) {
+  return `
+[out:json][timeout:60];
 (
-  nwr(area.searchArea)["leisure"="horse_riding"];
-  nwr(area.searchArea)["sport"="equestrian"];
-  nwr(area.searchArea)["building"="stable"];
-  nwr(area.searchArea)["landuse"="equestrian"];
-  nwr(area.searchArea)["name"~"stall|stuteri|ridcenter|ridskola|travstall|hastgard|hastgård|ridanlaggning|ridanläggning", i];
+  nwr["leisure"="horse_riding"](${south},${west},${north},${east});
+  nwr["sport"="equestrian"](${south},${west},${north},${east});
+  nwr["building"="stable"](${south},${west},${north},${east});
+  nwr["landuse"="equestrian"](${south},${west},${north},${east});
+  nwr["name"~"stall|stuteri|ridcenter|ridskola|travstall|hastgard|hastgård|ridanlaggning|ridanläggning", i](${south},${west},${north},${east});
 );
 out center tags;
 `;
+}
 
 function slugify(value) {
   return value
@@ -157,13 +173,13 @@ function normalizeElement(element) {
   };
 }
 
-async function fetchOverpassData() {
-  const response = await fetch(OVERPASS_API_URL, {
+async function fetchBoxFromEndpoint(apiUrl, bbox) {
+  const response = await fetch(apiUrl, {
     method: "POST",
     headers: {
       "content-type": "text/plain;charset=UTF-8"
     },
-    body: OVERPASS_QUERY
+    body: buildOverpassQuery(bbox)
   });
 
   if (!response.ok) {
@@ -172,6 +188,42 @@ async function fetchOverpassData() {
   }
 
   return response.json();
+}
+
+async function fetchOverpassData() {
+  const allElements = [];
+  const seen = new Set();
+
+  for (const bbox of SWEDEN_BBOXES) {
+    let boxResult = null;
+    let lastError = null;
+
+    for (const apiUrl of OVERPASS_API_URLS) {
+      try {
+        console.log(`Fetching bbox ${bbox.join(",")} from ${apiUrl} ...`);
+        boxResult = await fetchBoxFromEndpoint(apiUrl, bbox);
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+        console.warn(`Endpoint failed for bbox ${bbox.join(",")}: ${apiUrl}`);
+      }
+    }
+
+    if (!boxResult) {
+      throw lastError;
+    }
+
+    for (const element of boxResult.elements ?? []) {
+      const key = `${element.type}/${element.id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        allElements.push(element);
+      }
+    }
+  }
+
+  return { elements: allElements };
 }
 
 async function upsertSourceRecords(sourceRecords) {
@@ -230,7 +282,7 @@ async function upsertFacilities(facilities) {
 }
 
 async function main() {
-  console.log(`Fetching OSM data from ${OVERPASS_API_URL} ...`);
+  console.log(`Fetching OSM data from ${OVERPASS_API_URLS.join(", ")} ...`);
   const result = await fetchOverpassData();
   const normalized = (result.elements ?? []).map(normalizeElement).filter(Boolean);
 
