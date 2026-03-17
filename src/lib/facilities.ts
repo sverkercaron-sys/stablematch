@@ -1,6 +1,6 @@
 import { mockFacilities } from "@/lib/mock-data";
 import { createServiceSupabaseClient } from "@/lib/supabase";
-import { Facility, SearchFilters } from "@/lib/types";
+import { Facility, ReviewQueueItem, SearchFilters } from "@/lib/types";
 
 const defaultFilters: SearchFilters = {
   q: "",
@@ -136,5 +136,100 @@ export function summarizeFacilities(facilities: Facility[]) {
     verifiedCount,
     openSpotCount,
     municipalities
+  };
+}
+
+type ReviewRow = {
+  id: string;
+  slug: string;
+  name: string;
+  municipality: string;
+  region: string;
+  facility_type: string;
+  source_label: string | null;
+  status: string;
+  address: string;
+  has_riding_house: boolean;
+  has_paddock: boolean;
+  open_spots: number;
+  claims: { count: number }[] | null;
+  applications: { count: number }[] | null;
+};
+
+function hasWeakFacilityName(name: string) {
+  const normalized = name.trim().toLowerCase();
+  const weakNames = [
+    "ridhus",
+    "travbana",
+    "hoppningsanläggning",
+    "hoppningsanlaggning",
+    "lokstallet"
+  ];
+
+  if (weakNames.includes(normalized)) {
+    return true;
+  }
+
+  return normalized.split(/\s+/).length === 1 && normalized.length < 11;
+}
+
+export async function getReviewQueue(): Promise<ReviewQueueItem[]> {
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("facilities")
+    .select(
+      "id, slug, name, municipality, region, facility_type, source_label, status, address, has_riding_house, has_paddock, open_spots, claims(count), applications(count)"
+    )
+    .order("status", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(250);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as ReviewRow[]).map((row) => {
+    const claimCount = row.claims?.[0]?.count ?? 0;
+    const applicationCount = row.applications?.[0]?.count ?? 0;
+    const hasWeakName = hasWeakFacilityName(row.name);
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      municipality: row.municipality,
+      region: row.region,
+      facilityType: row.facility_type,
+      sourceLabel: row.source_label ?? "Imported",
+      status: row.status,
+      address: row.address,
+      hasRidingHouse: row.has_riding_house,
+      hasPaddock: row.has_paddock,
+      openSpots: row.open_spots,
+      claimCount,
+      applicationCount,
+      hasWeakName,
+      needsReview: row.status !== "verified" && (hasWeakName || claimCount > 0 || applicationCount > 0)
+    };
+  });
+}
+
+export function summarizeReviewQueue(items: ReviewQueueItem[]) {
+  const needsReview = items.filter((item) => item.needsReview).length;
+  const claimed = items.filter((item) => item.status === "claimed").length;
+  const verified = items.filter((item) => item.status === "verified").length;
+  const weakNames = items.filter((item) => item.hasWeakName).length;
+
+  return {
+    total: items.length,
+    needsReview,
+    claimed,
+    verified,
+    weakNames
   };
 }

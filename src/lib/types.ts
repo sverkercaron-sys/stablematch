@@ -46,3 +46,22 @@ export type InquiryPayload = {
   horseAge: string;
   message: string;
 };
+
+export type ReviewQueueItem = {
+  id: string;
+  slug: string;
+  name: string;
+  municipality: string;
+  region: string;
+  facilityType: string;
+  sourceLabel: string;
+  status: string;
+  address: string;
+  hasRidingHouse: boolean;
+  hasPaddock: boolean;
+  openSpots: number;
+  claimCount: number;
+  applicationCount: number;
+  hasWeakName: boolean;
+  needsReview: boolean;
+};
