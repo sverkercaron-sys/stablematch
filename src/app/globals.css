@@ -393,6 +393,44 @@ button {
   gap: 12px;
 }
 
+.duplicateList {
+  display: grid;
+  gap: 14px;
+}
+
+.duplicateCard {
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--surface-strong);
+  border: 1px solid rgba(31, 42, 31, 0.08);
+}
+
+.duplicateHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.duplicateGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.duplicateSide {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(32, 73, 57, 0.04);
+}
+
+.duplicateSide span {
+  color: var(--muted);
+}
+
 .reviewTableHeader,
 .reviewRow {
   display: grid;
@@ -583,7 +621,8 @@ button {
   }
 
   .reviewTableHeader,
-  .reviewRow {
+  .reviewRow,
+  .duplicateGrid {
     grid-template-columns: 1fr;
   }
 

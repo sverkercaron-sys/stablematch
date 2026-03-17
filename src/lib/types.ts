@@ -67,3 +67,21 @@ export type ReviewQueueItem = {
   hasWeakName: boolean;
   needsReview: boolean;
 };
+
+export type DuplicateCandidate = {
+  primaryId: string;
+  primarySlug: string;
+  primaryName: string;
+  primaryMunicipality: string;
+  primaryRegion: string;
+  primarySourceLabel: string;
+  secondaryId: string;
+  secondarySlug: string;
+  secondaryName: string;
+  secondaryMunicipality: string;
+  secondaryRegion: string;
+  secondarySourceLabel: string;
+  score: number;
+  reason: string;
+  distanceKm: number | null;
+};

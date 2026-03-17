@@ -1,6 +1,6 @@
 import { mockFacilities } from "@/lib/mock-data";
 import { createServiceSupabaseClient } from "@/lib/supabase";
-import { Facility, ReviewQueueItem, SearchFilters } from "@/lib/types";
+import { DuplicateCandidate, Facility, ReviewQueueItem, SearchFilters } from "@/lib/types";
 
 const defaultFilters: SearchFilters = {
   q: "",
@@ -236,4 +236,135 @@ export function summarizeReviewQueue(items: ReviewQueueItem[]) {
     verified,
     weakNames
   };
+}
+
+type DuplicateRow = {
+  id: string;
+  slug: string;
+  name: string;
+  municipality: string;
+  region: string;
+  latitude: number;
+  longitude: number;
+  source_label: string | null;
+};
+
+function normalizeName(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\b(ridklubb|ryttarforening|ryttarförening|ridskola|ridcenter|stall|stuteri)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokenSet(value: string) {
+  return new Set(normalizeName(value).split(" ").filter(Boolean));
+}
+
+function jaccardScore(left: Set<string>, right: Set<string>) {
+  const intersection = [...left].filter((token) => right.has(token)).length;
+  const union = new Set([...left, ...right]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+}
+
+export async function getDuplicateCandidates(): Promise<DuplicateCandidate[]> {
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("facilities")
+    .select("id, slug, name, municipality, region, latitude, longitude, source_label")
+    .eq("is_active", true)
+    .limit(500);
+
+  if (error || !data) {
+    return [];
+  }
+
+  const rows = data as DuplicateRow[];
+  const candidates: DuplicateCandidate[] = [];
+  const seenPairs = new Set<string>();
+
+  for (let index = 0; index < rows.length; index += 1) {
+    const primary = rows[index];
+    const primaryTokens = tokenSet(primary.name);
+
+    for (let compareIndex = index + 1; compareIndex < rows.length; compareIndex += 1) {
+      const secondary = rows[compareIndex];
+      const pairKey = [primary.id, secondary.id].sort().join(":");
+
+      if (seenPairs.has(pairKey)) {
+        continue;
+      }
+
+      seenPairs.add(pairKey);
+
+      const distanceKm = haversineKm(
+        primary.latitude,
+        primary.longitude,
+        secondary.latitude,
+        secondary.longitude
+      );
+      const secondaryTokens = tokenSet(secondary.name);
+      const nameScore = jaccardScore(primaryTokens, secondaryTokens);
+      const sameMunicipality =
+        primary.municipality.toLowerCase() === secondary.municipality.toLowerCase();
+
+      let score = 0;
+      let reason = "";
+
+      if (nameScore >= 0.72 && sameMunicipality) {
+        score = nameScore + 0.2;
+        reason = "Liknande namn i samma kommun";
+      } else if (nameScore >= 0.6 && distanceKm < 5) {
+        score = nameScore + 0.15;
+        reason = "Liknande namn och nära koordinater";
+      } else if (distanceKm < 0.75 && nameScore >= 0.35) {
+        score = nameScore + 0.1;
+        reason = "Mycket nära koordinater";
+      }
+
+      if (!reason) {
+        continue;
+      }
+
+      candidates.push({
+        primaryId: primary.id,
+        primarySlug: primary.slug,
+        primaryName: primary.name,
+        primaryMunicipality: primary.municipality,
+        primaryRegion: primary.region,
+        primarySourceLabel: primary.source_label ?? "Imported",
+        secondaryId: secondary.id,
+        secondarySlug: secondary.slug,
+        secondaryName: secondary.name,
+        secondaryMunicipality: secondary.municipality,
+        secondaryRegion: secondary.region,
+        secondarySourceLabel: secondary.source_label ?? "Imported",
+        score,
+        reason,
+        distanceKm: Number(distanceKm.toFixed(2))
+      });
+    }
+  }
+
+  return candidates.sort((left, right) => right.score - left.score).slice(0, 100);
 }
