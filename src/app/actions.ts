@@ -173,3 +173,57 @@ export async function resolveDuplicate(formData: FormData) {
   revalidatePath("/admin/review");
   revalidatePath("/");
 }
+
+export async function saveListing(formData: FormData) {
+  const listingId = String(formData.get("listingId") ?? "");
+  const facilityId = String(formData.get("facilityId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const status = String(formData.get("status") ?? "draft").trim();
+  const boardingMode = String(formData.get("boardingMode") ?? "box").trim();
+  const monthlyPriceSek = Number(formData.get("monthlyPriceSek") ?? 0);
+  const openSpots = Number(formData.get("openSpots") ?? 1);
+  const availableFromRaw = String(formData.get("availableFrom") ?? "").trim();
+  const shortDescription = String(formData.get("shortDescription") ?? "").trim();
+  const isFeatured = String(formData.get("isFeatured") ?? "") === "on";
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase || !facilityId || !title) {
+    return;
+  }
+
+  const payload = {
+    facility_id: facilityId,
+    title: title.slice(0, 180),
+    status: ["draft", "active", "paused", "filled"].includes(status) ? status : "draft",
+    boarding_mode: boardingMode === "loose" ? "loose" : "box",
+    monthly_price_sek: Number.isFinite(monthlyPriceSek) ? Math.max(0, monthlyPriceSek) : 0,
+    open_spots: Number.isFinite(openSpots) ? Math.max(0, openSpots) : 0,
+    available_from: availableFromRaw || null,
+    short_description: shortDescription.slice(0, 280),
+    is_featured: isFeatured
+  };
+
+  if (listingId) {
+    await supabase.from("listings").update(payload).eq("id", listingId);
+  } else {
+    await supabase.from("listings").insert(payload);
+  }
+
+  revalidatePath("/admin/listings");
+  revalidatePath("/");
+}
+
+export async function changeListingStatus(formData: FormData) {
+  const listingId = String(formData.get("listingId") ?? "");
+  const status = String(formData.get("status") ?? "").trim();
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase || !listingId || !["draft", "active", "paused", "filled"].includes(status)) {
+    return;
+  }
+
+  await supabase.from("listings").update({ status }).eq("id", listingId);
+
+  revalidatePath("/admin/listings");
+  revalidatePath("/");
+}

@@ -398,6 +398,18 @@ button {
   gap: 16px;
 }
 
+.listingAdminList {
+  display: grid;
+  gap: 16px;
+}
+
+.listingAdminCard {
+  padding: 20px;
+  border-radius: 24px;
+  background: var(--surface-strong);
+  border: 1px solid rgba(31, 42, 31, 0.08);
+}
+
 .listingCard {
   padding: 20px;
   border-radius: 24px;
@@ -416,13 +428,39 @@ button {
   gap: 16px;
 }
 
+.listingAdminHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
 .listingHeader h3 {
   margin: 6px 0 4px;
 }
 
-.listingHeader p {
+.listingHeader p,
+.listingAdminHeader p {
   margin: 0;
   color: var(--muted);
+}
+
+.listingAdminForm {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.listingAdminWide {
+  grid-column: 1 / span 3;
+}
+
+.listingStatusActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .reviewTable {
@@ -698,7 +736,8 @@ button {
   .reviewTableHeader,
   .reviewRow,
   .duplicateGrid,
-  .listingGrid {
+  .listingGrid,
+  .listingAdminForm {
     grid-template-columns: 1fr;
   }
 

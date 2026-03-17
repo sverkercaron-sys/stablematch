@@ -116,3 +116,16 @@ export type DuplicateDecisionItem = {
   leftName: string;
   rightName: string;
 };
+
+export type ListingAdminItem = Listing & {
+  facilityStatus: string;
+  facilityVerified: boolean;
+};
+
+export type ListingFormFacility = {
+  id: string;
+  name: string;
+  municipality: string;
+  region: string;
+  verified: boolean;
+};

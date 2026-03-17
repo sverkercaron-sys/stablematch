@@ -5,6 +5,8 @@ import {
   DuplicateDecisionItem,
   Facility,
   Listing,
+  ListingAdminItem,
+  ListingFormFacility,
   ReviewQueueItem,
   SearchFilters
 } from "@/lib/types";
@@ -228,6 +230,71 @@ export async function getListingsForFacility(facilityId: string): Promise<Listin
   }
 
   return (data as unknown as ListingRow[]).map(mapListingRow);
+}
+
+type ListingAdminRow = ListingRow & {
+  facilities: {
+    slug: string;
+    name: string;
+    municipality: string;
+    region: string;
+    status: string;
+  } | null;
+};
+
+export async function getListingsAdminItems(): Promise<ListingAdminItem[]> {
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("listings")
+    .select(
+      "id, facility_id, title, status, boarding_mode, monthly_price_sek, open_spots, available_from, short_description, is_featured, facilities(slug, name, municipality, region, status)"
+    )
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as unknown as ListingAdminRow[]).map((row) => ({
+    ...mapListingRow(row),
+    facilityStatus: row.facilities?.status ?? "auto_listed",
+    facilityVerified: row.facilities?.status === "verified"
+  }));
+}
+
+export async function getListingFormFacilities(): Promise<ListingFormFacility[]> {
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("facilities")
+    .select("id, name, municipality, region, status")
+    .eq("is_active", true)
+    .order("name", { ascending: true })
+    .limit(300);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as { id: string; name: string; municipality: string; region: string; status: string }[]).map(
+    (row) => ({
+      id: row.id,
+      name: row.name,
+      municipality: row.municipality,
+      region: row.region,
+      verified: row.status === "verified"
+    })
+  );
 }
 
 export function summarizeFacilities(facilities: Facility[]) {
