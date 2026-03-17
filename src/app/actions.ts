@@ -48,3 +48,31 @@ export async function submitClaim(formData: FormData) {
 
   revalidatePath("/");
 }
+
+export async function reviewFacility(formData: FormData) {
+  const facilityId = String(formData.get("facilityId") ?? "");
+  const action = String(formData.get("actionType") ?? "");
+  const supabase = createServiceSupabaseClient();
+
+  if (!facilityId || !supabase) {
+    return;
+  }
+
+  if (action === "approve") {
+    await supabase
+      .from("facilities")
+      .update({ status: "verified", is_active: true })
+      .eq("id", facilityId);
+  }
+
+  if (action === "deactivate") {
+    await supabase.from("facilities").update({ is_active: false }).eq("id", facilityId);
+  }
+
+  if (action === "restore") {
+    await supabase.from("facilities").update({ is_active: true }).eq("id", facilityId);
+  }
+
+  revalidatePath("/admin/review");
+  revalidatePath("/");
+}

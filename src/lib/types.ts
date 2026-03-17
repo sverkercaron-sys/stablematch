@@ -56,6 +56,7 @@ export type ReviewQueueItem = {
   facilityType: string;
   sourceLabel: string;
   status: string;
+  isActive: boolean;
   address: string;
   hasRidingHouse: boolean;
   hasPaddock: boolean;

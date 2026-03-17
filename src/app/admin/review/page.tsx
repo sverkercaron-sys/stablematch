@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { reviewFacility } from "@/app/actions";
 import { getReviewQueue, summarizeReviewQueue } from "@/lib/facilities";
 
 export default async function ReviewPage() {
@@ -42,8 +43,8 @@ export default async function ReviewPage() {
         <div className="resultsHeader">
           <h2>Review-kö</h2>
           <p>
-            Read-only första version. Nästa steg kan bli godkänn/avvisa, merge och direktredigering
-            av importerade poster.
+            Första moderationen är avsiktligt enkel: verifiera bra poster och avpublicera poster
+            som inte ska synas publikt.
           </p>
         </div>
         <div className="reviewTable">
@@ -64,9 +65,12 @@ export default async function ReviewPage() {
                 <span>{item.address}</span>
               </div>
               <div>
-                <span className={`statusBadge ${item.status === "verified" ? "verified" : "listed"}`}>
+                <span
+                  className={`statusBadge ${item.status === "verified" ? "verified" : "listed"}`}
+                >
                   {item.status}
                 </span>
+                {!item.isActive ? <span className="inactiveNote">avpublicerad</span> : null}
               </div>
               <div className="reviewMeta">
                 <span>{item.sourceLabel}</span>
@@ -88,6 +92,20 @@ export default async function ReviewPage() {
                 <Link className="secondaryLink compactLink" href={`/for-owners?facility=${item.id}`}>
                   Claim-länk
                 </Link>
+                <form action={reviewFacility}>
+                  <input type="hidden" name="facilityId" value={item.id} />
+                  <input type="hidden" name="actionType" value="approve" />
+                  <button className="primaryButton compactLink" type="submit">
+                    Verifiera
+                  </button>
+                </form>
+                <form action={reviewFacility}>
+                  <input type="hidden" name="facilityId" value={item.id} />
+                  <input type="hidden" name="actionType" value={item.isActive ? "deactivate" : "restore"} />
+                  <button className="secondaryLink compactLink" type="submit">
+                    {item.isActive ? "Avpublicera" : "Återställ"}
+                  </button>
+                </form>
               </div>
             </article>
           ))}

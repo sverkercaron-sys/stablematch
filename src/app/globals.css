@@ -432,6 +432,13 @@ button {
   color: var(--muted);
 }
 
+.inactiveNote {
+  display: inline-block;
+  margin-top: 8px;
+  color: #8a5b00;
+  font-size: 0.9rem;
+}
+
 .warningPill {
   display: inline-flex;
   align-items: center;
