@@ -3,6 +3,8 @@ create extension if not exists "pgcrypto";
 create table if not exists public.facilities (
   id uuid primary key default gen_random_uuid(),
   slug text unique not null,
+  source_name text,
+  source_id text,
   name text not null,
   status text not null default 'auto_listed' check (status in ('auto_listed', 'claimed', 'verified')),
   latitude double precision not null,
@@ -60,7 +62,13 @@ create table if not exists public.source_records (
 );
 
 create index if not exists facilities_slug_idx on public.facilities (slug);
+create unique index if not exists facilities_source_key_idx
+  on public.facilities (source_name, source_id)
+  where source_id is not null;
 create index if not exists facilities_municipality_idx on public.facilities (municipality);
 create index if not exists facilities_status_idx on public.facilities (status);
 create index if not exists claims_facility_id_idx on public.claims (facility_id);
 create index if not exists applications_facility_id_idx on public.applications (facility_id);
+create unique index if not exists source_records_source_key_idx
+  on public.source_records (source_name, source_id)
+  where source_id is not null;
