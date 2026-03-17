@@ -73,7 +73,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <div className="heroVisual">
           <div className="heroImageFrame">
             <Image
-              src="/hero-stable.svg"
+              src="/hero-stable-photo.png"
               alt="Illustration av stall och hästanläggning"
               width={960}
               height={720}
