@@ -1,3 +1,6 @@
+import Image from "next/image";
+import Link from "next/link";
+
 import { FacilityCard } from "@/components/facility-card";
 import { ListingCard } from "@/components/listing-card";
 import { LiveMap } from "@/components/live-map";
@@ -46,30 +49,75 @@ export default async function Home({ searchParams }: HomeProps) {
     <div className="pageStack">
       <section className="hero">
         <div className="heroContent">
-          <div className="eyebrow">Sweden MVP</div>
-          <h1>Hitta stallplatser och claima profiler innan marknaden är mogen.</h1>
+          <div className="eyebrow">StableMatch Sverige</div>
+          <h1>Hitta rätt stallplats med bättre överblick, tydligare annonser och mindre letande.</h1>
           <p>
-            StableMatch börjar som en sökbar katalog över svenska anläggningar och växer till en
-            marketplace för lediga stallplatser.
+            StableMatch samlar stall, lösdrifter och lediga platser på ett ställe. Jämför
+            anläggningar, se vad som är ledigt just nu och kontakta stallägare snabbare utan att
+            leta runt mellan grupper, kontaktannonser och gamla trådar.
           </p>
+          <div className="heroActions">
+            <Link className="primaryButton" href="#search">
+              Börja söka stall
+            </Link>
+            <Link className="secondaryLink" href="/for-owners">
+              För stallägare
+            </Link>
+          </div>
+          <div className="heroHighlights">
+            <span>Jämför stall på karta</span>
+            <span>Se verifierade profiler</span>
+            <span>Hitta lediga platser direkt</span>
+          </div>
         </div>
-        <div className="heroStats">
-          <div>
-            <strong>{facilities.length}</strong>
-            <span>anläggningar i aktuellt resultat</span>
+        <div className="heroVisual">
+          <div className="heroImageFrame">
+            <Image
+              src="/hero-stable.svg"
+              alt="Illustration av stall och hästanläggning"
+              width={960}
+              height={720}
+              priority
+            />
           </div>
-          <div>
-            <strong>{summary.verifiedCount}</strong>
-            <span>verifierade profiler i träfflistan</span>
-          </div>
-          <div>
-            <strong>{summary.openSpotCount}</strong>
-            <span>öppna platser i seedad data</span>
+          <div className="heroStats">
+            <div>
+              <strong>{facilities.length}</strong>
+              <span>anläggningar i aktuellt resultat</span>
+            </div>
+            <div>
+              <strong>{summary.verifiedCount}</strong>
+              <span>verifierade profiler i träfflistan</span>
+            </div>
+            <div>
+              <strong>{summary.openSpotCount}</strong>
+              <span>öppna platser i seedad data</span>
+            </div>
           </div>
         </div>
       </section>
 
-      <SearchPanel filters={filters} />
+      <section className="valueStrip">
+        <article className="valueCard">
+          <div className="eyebrow">För hästägare</div>
+          <h2>Slipp gissa dig fram.</h2>
+          <p>Se anläggning, boendeform, platsläge och lediga stallplatser i samma flöde.</p>
+        </article>
+        <article className="valueCard">
+          <div className="eyebrow">För stallägare</div>
+          <h2>Visa rätt bild av verksamheten.</h2>
+          <p>Claima profilen, lägg upp aktuella annonser och nå rätt typ av inackorderingar.</p>
+        </article>
+        <article className="valueCard">
+          <div className="eyebrow">För marknaden</div>
+          <h2>En tydligare startpunkt.</h2>
+          <p>StableMatch gör marknaden sökbar, jämförbar och lättare att hålla uppdaterad.</p>
+        </article>
+      </section>
+
+      <div id="search">
+        <SearchPanel filters={filters} />
+      </div>
 
       <section className="resultsPanel">
         <div className="resultsHeader">
