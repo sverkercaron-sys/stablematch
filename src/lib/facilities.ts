@@ -150,6 +150,7 @@ type ReviewRow = {
   status: string;
   is_active: boolean;
   address: string;
+  description_short: string;
   has_riding_house: boolean;
   has_paddock: boolean;
   open_spots: number;
@@ -184,7 +185,7 @@ export async function getReviewQueue(): Promise<ReviewQueueItem[]> {
   const { data, error } = await supabase
     .from("facilities")
     .select(
-      "id, slug, name, municipality, region, facility_type, source_label, status, is_active, address, has_riding_house, has_paddock, open_spots, claims(count), applications(count)"
+      "id, slug, name, municipality, region, facility_type, source_label, status, is_active, address, description_short, has_riding_house, has_paddock, open_spots, claims(count), applications(count)"
     )
     .order("status", { ascending: true })
     .order("created_at", { ascending: false })
@@ -210,6 +211,7 @@ export async function getReviewQueue(): Promise<ReviewQueueItem[]> {
       status: row.status,
       isActive: row.is_active,
       address: row.address,
+      description: row.description_short,
       hasRidingHouse: row.has_riding_house,
       hasPaddock: row.has_paddock,
       openSpots: row.open_spots,

@@ -76,3 +76,29 @@ export async function reviewFacility(formData: FormData) {
   revalidatePath("/admin/review");
   revalidatePath("/");
 }
+
+export async function updateFacilityFromReview(formData: FormData) {
+  const facilityId = String(formData.get("facilityId") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const facilityType = String(formData.get("facilityType") ?? "").trim();
+  const address = String(formData.get("address") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const supabase = createServiceSupabaseClient();
+
+  if (!facilityId || !supabase || !name || !facilityType) {
+    return;
+  }
+
+  await supabase
+    .from("facilities")
+    .update({
+      name: name.slice(0, 160),
+      facility_type: facilityType.slice(0, 64),
+      address: address ? address.slice(0, 240) : "Adress saknas",
+      description_short: description.slice(0, 280)
+    })
+    .eq("id", facilityId);
+
+  revalidatePath("/admin/review");
+  revalidatePath("/");
+}

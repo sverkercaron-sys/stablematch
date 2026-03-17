@@ -427,6 +427,19 @@ button {
   gap: 8px;
 }
 
+.reviewEditForm {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 1.2fr auto;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(31, 42, 31, 0.08);
+}
+
+.reviewEditWide {
+  grid-column: 1 / span 3;
+}
+
 .reviewMain span,
 .reviewMeta span {
   color: var(--muted);

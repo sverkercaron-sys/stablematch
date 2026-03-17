@@ -1,7 +1,15 @@
 import Link from "next/link";
 
-import { reviewFacility } from "@/app/actions";
+import { reviewFacility, updateFacilityFromReview } from "@/app/actions";
 import { getReviewQueue, summarizeReviewQueue } from "@/lib/facilities";
+
+const facilityTypeOptions = [
+  { value: "stable", label: "Stable" },
+  { value: "riding_school", label: "Riding school" },
+  { value: "harness_racing", label: "Harness racing" },
+  { value: "stud_farm", label: "Stud farm" },
+  { value: "loose_boarding", label: "Loose boarding" }
+];
 
 export default async function ReviewPage() {
   const items = await getReviewQueue();
@@ -107,6 +115,34 @@ export default async function ReviewPage() {
                   </button>
                 </form>
               </div>
+              <form action={updateFacilityFromReview} className="reviewEditForm">
+                <input type="hidden" name="facilityId" value={item.id} />
+                <label className="field">
+                  <span>Namn</span>
+                  <input name="name" defaultValue={item.name} required />
+                </label>
+                <label className="field">
+                  <span>Typ</span>
+                  <select name="facilityType" defaultValue={item.facilityType}>
+                    {facilityTypeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span>Adress</span>
+                  <input name="address" defaultValue={item.address} />
+                </label>
+                <label className="field reviewEditWide">
+                  <span>Kort beskrivning</span>
+                  <textarea name="description" rows={3} defaultValue={item.description} />
+                </label>
+                <button className="primaryButton compactLink" type="submit">
+                  Spara ändringar
+                </button>
+              </form>
             </article>
           ))}
         </div>

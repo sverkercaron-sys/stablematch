@@ -58,6 +58,7 @@ export type ReviewQueueItem = {
   status: string;
   isActive: boolean;
   address: string;
+  description: string;
   hasRidingHouse: boolean;
   hasPaddock: boolean;
   openSpots: number;
