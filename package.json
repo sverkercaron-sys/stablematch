@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "import:osm": "node scripts/import-osm.mjs",
-    "import:geofabrik": "node scripts/import-geofabrik.mjs"
+    "import:geofabrik": "node scripts/import-geofabrik.mjs",
+    "enrich:geography": "node scripts/enrich-geography.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

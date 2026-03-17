@@ -67,3 +67,23 @@ Environment overrides:
 
 - `GEOFABRIK_PBF_URL`
 - `GEOFABRIK_PBF_PATH`
+
+## Geography enrichment
+
+After import, enrich missing municipality and region fields with:
+
+```bash
+npm run enrich:geography
+```
+
+This script:
+
+- only targets facilities with `Okänd kommun` or `Okänd region`
+- reverse geocodes coordinates one by one
+- updates `municipality` and `region` in Supabase
+
+Environment overrides:
+
+- `REVERSE_GEOCODE_URL`
+- `REVERSE_GEOCODE_EMAIL`
+- `ENRICH_GEOGRAPHY_LIMIT`
