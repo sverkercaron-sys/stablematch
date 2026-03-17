@@ -23,11 +23,14 @@ function normalizeFilters(params: Record<string, string | string[] | undefined>)
     municipality: Array.isArray(params.municipality)
       ? params.municipality[0] ?? ""
       : params.municipality ?? "",
+    region: Array.isArray(params.region) ? params.region[0] ?? "" : params.region ?? "",
     boardingMode:
       boardingModeValue === "box" || boardingModeValue === "loose" ? boardingModeValue : "all",
     maxPrice: maxPriceValue ? Number(maxPriceValue) : null,
     ridingHouseOnly: coerceBoolean(params.ridingHouseOnly),
-    paddockOnly: coerceBoolean(params.paddockOnly)
+    paddockOnly: coerceBoolean(params.paddockOnly),
+    verifiedOnly: coerceBoolean(params.verifiedOnly),
+    availableNowOnly: coerceBoolean(params.availableNowOnly)
   };
 }
 
@@ -80,6 +83,9 @@ export default async function Home({ searchParams }: HomeProps) {
             <span>{summary.municipalities} kommuner</span>
             <span>{summary.verifiedCount} verifierade</span>
             <span>{summary.openSpotCount} öppna platser</span>
+            {filters.region ? <span>län: {filters.region}</span> : null}
+            {filters.verifiedOnly ? <span>endast verifierade</span> : null}
+            {filters.availableNowOnly ? <span>endast lediga nu</span> : null}
           </div>
           <div className="resultsList">
             {facilities.map((facility) => (

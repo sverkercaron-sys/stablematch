@@ -21,6 +21,10 @@ export function SearchPanel({ filters }: SearchPanelProps) {
           />
         </label>
         <label className="field">
+          <span>Län</span>
+          <input name="region" defaultValue={filters.region} placeholder="Till exempel Uppsala län" />
+        </label>
+        <label className="field">
           <span>Typ</span>
           <select name="boardingMode" defaultValue={filters.boardingMode}>
             <option value="all">Alla</option>
@@ -49,6 +53,22 @@ export function SearchPanel({ filters }: SearchPanelProps) {
           <input type="checkbox" name="paddockOnly" defaultChecked={filters.paddockOnly} />
           <span>Endast paddock</span>
         </label>
+        <label className="checkboxField">
+          <input type="checkbox" name="verifiedOnly" defaultChecked={filters.verifiedOnly} />
+          <span>Endast verifierade</span>
+        </label>
+      </div>
+      <div className="searchRow">
+        <label className="checkboxField">
+          <input
+            type="checkbox"
+            name="availableNowOnly"
+            defaultChecked={filters.availableNowOnly}
+          />
+          <span>Endast lediga nu</span>
+        </label>
+        <div className="searchSpacer" />
+        <div className="searchSpacer" />
         <button className="primaryButton" type="submit">
           Uppdatera sökning
         </button>

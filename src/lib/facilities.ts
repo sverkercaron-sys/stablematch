@@ -11,10 +11,13 @@ import {
 const defaultFilters: SearchFilters = {
   q: "",
   municipality: "",
+  region: "",
   boardingMode: "all",
   maxPrice: null,
   ridingHouseOnly: false,
-  paddockOnly: false
+  paddockOnly: false,
+  verifiedOnly: false,
+  availableNowOnly: false
 };
 
 type FacilityRow = {
@@ -70,20 +73,27 @@ export function applyFilters(
     const municipalityMatch =
       !filters.municipality ||
       facility.municipality.toLowerCase().includes(filters.municipality.toLowerCase());
+    const regionMatch =
+      !filters.region || facility.region.toLowerCase().includes(filters.region.toLowerCase());
     const boardingMatch =
       filters.boardingMode === "all" || facility.boardingModes.includes(filters.boardingMode);
     const priceMatch =
       filters.maxPrice === null || facility.monthlyPriceSek <= Number(filters.maxPrice);
     const ridingHouseMatch = !filters.ridingHouseOnly || facility.hasRidingHouse;
     const paddockMatch = !filters.paddockOnly || facility.hasPaddock;
+    const verifiedMatch = !filters.verifiedOnly || facility.verified;
+    const availableNowMatch = !filters.availableNowOnly || facility.openSpots > 0;
 
     return (
       queryMatch &&
       municipalityMatch &&
+      regionMatch &&
       boardingMatch &&
       priceMatch &&
       ridingHouseMatch &&
-      paddockMatch
+      paddockMatch &&
+      verifiedMatch &&
+      availableNowMatch
     );
   });
 }

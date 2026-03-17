@@ -30,10 +30,13 @@ export function formatBoardingModes(modes: BoardingMode[]): string {
 export type SearchFilters = {
   q: string;
   municipality: string;
+  region: string;
   boardingMode: "all" | BoardingMode;
   maxPrice: number | null;
   ridingHouseOnly: boolean;
   paddockOnly: boolean;
+  verifiedOnly: boolean;
+  availableNowOnly: boolean;
 };
 
 export type InquiryPayload = {
