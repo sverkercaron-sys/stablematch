@@ -66,3 +66,51 @@ insert into public.facilities (
     1,
     'Claimed profile'
   );
+
+insert into public.listings (
+  facility_id,
+  title,
+  status,
+  boarding_mode,
+  monthly_price_sek,
+  open_spots,
+  available_from,
+  short_description,
+  is_featured
+)
+select
+  id,
+  'Ledig boxplats med fullservice',
+  'active',
+  'box',
+  4650,
+  2,
+  current_date + interval '14 days',
+  'Två boxplatser med ridhus, paddock och tydliga rutiner. Passar ekipage som vill flytta in inom kort.',
+  true
+from public.facilities
+where slug = 'ekbacken-ridgard';
+
+insert into public.listings (
+  facility_id,
+  title,
+  status,
+  boarding_mode,
+  monthly_price_sek,
+  open_spots,
+  available_from,
+  short_description,
+  is_featured
+)
+select
+  id,
+  'Lösdriftsplats i mindre flock',
+  'active',
+  'loose',
+  3500,
+  1,
+  current_date + interval '7 days',
+  'Lösdriftsplats med stora vinterhagar och lugn flock. Passar häst som fungerar väl i grupp.',
+  false
+from public.facilities
+where slug = 'norrhage-loosdrift';

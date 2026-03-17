@@ -7,6 +7,7 @@ import { createServiceSupabaseClient } from "@/lib/supabase";
 export async function submitInquiry(formData: FormData) {
   const payload = {
     facility_id: String(formData.get("facilityId") ?? ""),
+    listing_id: String(formData.get("listingId") ?? "") || null,
     facility_name: String(formData.get("facilityName") ?? ""),
     applicant_name: String(formData.get("applicantName") ?? ""),
     email: String(formData.get("email") ?? ""),

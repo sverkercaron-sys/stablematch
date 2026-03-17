@@ -1,7 +1,8 @@
 import { FacilityCard } from "@/components/facility-card";
+import { ListingCard } from "@/components/listing-card";
 import { LiveMap } from "@/components/live-map";
 import { SearchPanel } from "@/components/search-panel";
-import { getFacilities, summarizeFacilities } from "@/lib/facilities";
+import { getActiveListings, getFacilities, summarizeFacilities } from "@/lib/facilities";
 import { SearchFilters } from "@/lib/types";
 
 type HomeProps = {
@@ -38,6 +39,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
   const filters = normalizeFilters(resolvedSearchParams);
   const facilities = await getFacilities(filters);
+  const listings = await getActiveListings();
   const summary = summarizeFacilities(facilities);
 
   return (
@@ -68,6 +70,25 @@ export default async function Home({ searchParams }: HomeProps) {
       </section>
 
       <SearchPanel filters={filters} />
+
+      <section className="resultsPanel">
+        <div className="resultsHeader">
+          <h2>Lediga stallplatser just nu</h2>
+          <p>
+            Listings är nu separata objekt från själva anläggningen. Det här är första steget mot
+            riktig marketplace-logik.
+          </p>
+        </div>
+        <div className="listingGrid">
+          {listings.length ? (
+            listings.map((listing) => <ListingCard key={listing.id} listing={listing} />)
+          ) : (
+            <article className="noticeCard">
+              <p>Inga aktiva listings ännu. Seed-data läggs in via tabellen `listings`.</p>
+            </article>
+          )}
+        </div>
+      </section>
 
       <section className="contentGrid">
         <LiveMap facilities={facilities} />

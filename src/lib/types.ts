@@ -20,6 +20,23 @@ export type Facility = {
   sourceLabel: string;
 };
 
+export type Listing = {
+  id: string;
+  facilityId: string;
+  facilitySlug: string;
+  facilityName: string;
+  municipality: string;
+  region: string;
+  title: string;
+  status: "draft" | "active" | "paused" | "filled";
+  boardingMode: BoardingMode;
+  monthlyPriceSek: number;
+  openSpots: number;
+  availableFrom: string | null;
+  shortDescription: string;
+  isFeatured: boolean;
+};
+
 export function formatBoardingModes(modes: BoardingMode[]): string {
   return modes
     .map((mode) => (mode === "box" ? "Box" : "Lösdrift"))
@@ -41,6 +58,7 @@ export type SearchFilters = {
 
 export type InquiryPayload = {
   facilityId: string;
+  listingId?: string;
   facilityName: string;
   applicantName: string;
   email: string;

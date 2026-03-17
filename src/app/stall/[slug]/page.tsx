@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { submitInquiry } from "@/app/actions";
-import { getFacilityBySlug } from "@/lib/facilities";
+import { getFacilityBySlug, getListingsForFacility } from "@/lib/facilities";
 import { formatBoardingModes } from "@/lib/types";
 
 type FacilityPageProps = {
@@ -16,6 +16,8 @@ export default async function FacilityPage({ params }: FacilityPageProps) {
   if (!facility) {
     notFound();
   }
+
+  const listings = await getListingsForFacility(facility.id);
 
   return (
     <div className="pageStack">
@@ -73,6 +75,7 @@ export default async function FacilityPage({ params }: FacilityPageProps) {
           </p>
           <form action={submitInquiry} className="stackedForm">
             <input type="hidden" name="facilityId" value={facility.id} />
+            <input type="hidden" name="listingId" value={listings[0]?.id ?? ""} />
             <input type="hidden" name="facilityName" value={facility.name} />
             <label className="field">
               <span>Namn</span>
@@ -103,6 +106,39 @@ export default async function FacilityPage({ params }: FacilityPageProps) {
             </button>
           </form>
         </article>
+      </section>
+
+      <section className="resultsPanel">
+        <div className="resultsHeader">
+          <h2>Aktiva annonser på anläggningen</h2>
+          <p>Listings hanteras nu separat från själva stallprofilen.</p>
+        </div>
+        <div className="listingGrid">
+          {listings.length ? (
+            listings.map((listing) => (
+              <article key={listing.id} className="listingCard">
+                <div className="listingHeader">
+                  <div>
+                    <div className="eyebrow">{listing.status}</div>
+                    <h3>{listing.title}</h3>
+                  </div>
+                  <span className="statusBadge verified">
+                    {listing.boardingMode === "box" ? "Box" : "Lösdrift"}
+                  </span>
+                </div>
+                <p className="description">{listing.shortDescription}</p>
+                <div className="pillRow">
+                  <span className="pill">{listing.openSpots} lediga platser</span>
+                  <span className="pill">{listing.monthlyPriceSek.toLocaleString("sv-SE")} SEK/mån</span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="noticeCard">
+              <p>Inga aktiva annonser upplagda ännu för den här anläggningen.</p>
+            </article>
+          )}
+        </div>
       </section>
 
       <section className="noticeCard">

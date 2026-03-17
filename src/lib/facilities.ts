@@ -4,6 +4,7 @@ import {
   DuplicateCandidate,
   DuplicateDecisionItem,
   Facility,
+  Listing,
   ReviewQueueItem,
   SearchFilters
 } from "@/lib/types";
@@ -141,6 +142,92 @@ export async function getFacilityBySlug(slug: string): Promise<Facility | null> 
   }
 
   return mapRow(data as FacilityRow);
+}
+
+type ListingRow = {
+  id: string;
+  facility_id: string;
+  title: string;
+  status: "draft" | "active" | "paused" | "filled";
+  boarding_mode: "box" | "loose";
+  monthly_price_sek: number;
+  open_spots: number;
+  available_from: string | null;
+  short_description: string;
+  is_featured: boolean;
+  facilities: {
+    slug: string;
+    name: string;
+    municipality: string;
+    region: string;
+  } | null;
+};
+
+function mapListingRow(row: ListingRow): Listing {
+  return {
+    id: row.id,
+    facilityId: row.facility_id,
+    facilitySlug: row.facilities?.slug ?? "",
+    facilityName: row.facilities?.name ?? "Okänd anläggning",
+    municipality: row.facilities?.municipality ?? "Okänd kommun",
+    region: row.facilities?.region ?? "Okänd region",
+    title: row.title,
+    status: row.status,
+    boardingMode: row.boarding_mode,
+    monthlyPriceSek: row.monthly_price_sek,
+    openSpots: row.open_spots,
+    availableFrom: row.available_from,
+    shortDescription: row.short_description,
+    isFeatured: row.is_featured
+  };
+}
+
+export async function getActiveListings(): Promise<Listing[]> {
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("listings")
+    .select(
+      "id, facility_id, title, status, boarding_mode, monthly_price_sek, open_spots, available_from, short_description, is_featured, facilities(slug, name, municipality, region)"
+    )
+    .eq("status", "active")
+    .order("is_featured", { ascending: false })
+    .order("available_from", { ascending: true })
+    .limit(24);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as unknown as ListingRow[]).map(mapListingRow);
+}
+
+export async function getListingsForFacility(facilityId: string): Promise<Listing[]> {
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("listings")
+    .select(
+      "id, facility_id, title, status, boarding_mode, monthly_price_sek, open_spots, available_from, short_description, is_featured, facilities(slug, name, municipality, region)"
+    )
+    .eq("facility_id", facilityId)
+    .in("status", ["active", "paused", "filled"])
+    .order("status", { ascending: true })
+    .order("available_from", { ascending: true });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as unknown as ListingRow[]).map(mapListingRow);
 }
 
 export function summarizeFacilities(facilities: Facility[]) {
