@@ -102,3 +102,58 @@ export async function updateFacilityFromReview(formData: FormData) {
   revalidatePath("/admin/review");
   revalidatePath("/");
 }
+
+function createPairKey(leftId: string, rightId: string) {
+  return [leftId, rightId].sort().join(":");
+}
+
+export async function resolveDuplicate(formData: FormData) {
+  const actionType = String(formData.get("actionType") ?? "");
+  const primaryId = String(formData.get("primaryId") ?? "");
+  const secondaryId = String(formData.get("secondaryId") ?? "");
+  const winnerId = String(formData.get("winnerId") ?? "");
+  const supabase = createServiceSupabaseClient();
+
+  if (!supabase || !primaryId || !secondaryId) {
+    return;
+  }
+
+  const pairKey = createPairKey(primaryId, secondaryId);
+
+  if (actionType === "not_duplicate") {
+    await supabase.from("duplicate_decisions").upsert(
+      {
+        pair_key: pairKey,
+        left_facility_id: primaryId,
+        right_facility_id: secondaryId,
+        decision: "not_duplicate",
+        winner_facility_id: null
+      },
+      { onConflict: "pair_key" }
+    );
+  }
+
+  if (actionType === "merge" && winnerId) {
+    const loserId = winnerId === primaryId ? secondaryId : primaryId;
+
+    await supabase.from("duplicate_decisions").upsert(
+      {
+        pair_key: pairKey,
+        left_facility_id: primaryId,
+        right_facility_id: secondaryId,
+        decision: "merged",
+        winner_facility_id: winnerId
+      },
+      { onConflict: "pair_key" }
+    );
+
+    await supabase
+      .from("facilities")
+      .update({ is_active: false })
+      .eq("id", loserId);
+  }
+
+  revalidatePath("/admin/duplicates");
+  revalidatePath("/admin/review");
+  revalidatePath("/");
+}

@@ -419,6 +419,13 @@ button {
   gap: 16px;
 }
 
+.duplicateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
 .duplicateSide {
   display: grid;
   gap: 8px;

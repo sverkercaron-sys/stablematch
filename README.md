@@ -24,6 +24,7 @@ Run the SQL files in order:
 If your tables already exist from an earlier setup, also run:
 
 3. `supabase/alter_facilities_source_keys.sql`
+4. `supabase/duplicate_decisions.sql`
 
 ## Current MVP pages
 

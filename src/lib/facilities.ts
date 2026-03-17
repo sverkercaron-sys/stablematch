@@ -299,6 +299,12 @@ export async function getDuplicateCandidates(): Promise<DuplicateCandidate[]> {
     return [];
   }
 
+  const { data: decisionsData } = await supabase
+    .from("duplicate_decisions")
+    .select("pair_key");
+
+  const resolvedPairs = new Set((decisionsData ?? []).map((row) => row.pair_key));
+
   const rows = data as DuplicateRow[];
   const candidates: DuplicateCandidate[] = [];
   const seenPairs = new Set<string>();
@@ -316,6 +322,10 @@ export async function getDuplicateCandidates(): Promise<DuplicateCandidate[]> {
       }
 
       seenPairs.add(pairKey);
+
+      if (resolvedPairs.has(pairKey)) {
+        continue;
+      }
 
       const distanceKm = haversineKm(
         primary.latitude,
@@ -347,6 +357,7 @@ export async function getDuplicateCandidates(): Promise<DuplicateCandidate[]> {
       }
 
       candidates.push({
+        pairKey,
         primaryId: primary.id,
         primarySlug: primary.slug,
         primaryName: primary.name,

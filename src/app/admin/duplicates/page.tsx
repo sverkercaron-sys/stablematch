@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DuplicateActions } from "@/components/duplicate-actions";
 import { getDuplicateCandidates } from "@/lib/facilities";
 
 export default async function DuplicatesPage() {
@@ -61,6 +62,10 @@ export default async function DuplicatesPage() {
                   </Link>
                 </div>
               </div>
+              <DuplicateActions
+                primaryId={candidate.primaryId}
+                secondaryId={candidate.secondaryId}
+              />
             </article>
           ))}
         </div>

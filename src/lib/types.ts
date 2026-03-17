@@ -69,6 +69,7 @@ export type ReviewQueueItem = {
 };
 
 export type DuplicateCandidate = {
+  pairKey: string;
   primaryId: string;
   primarySlug: string;
   primaryName: string;
