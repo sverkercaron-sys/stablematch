@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { submitInquiry } from "@/app/actions";
 import { getFacilityBySlug } from "@/lib/facilities";
+import { formatBoardingModes } from "@/lib/types";
 
 type FacilityPageProps = {
   params: Promise<{ slug: string }>;
@@ -41,7 +42,7 @@ export default async function FacilityPage({ params }: FacilityPageProps) {
             </div>
             <div>
               <span>Boendeform</span>
-              <strong>{facility.boardingModes.join(" + ")}</strong>
+              <strong>{formatBoardingModes(facility.boardingModes)}</strong>
             </div>
             <div>
               <span>Lediga platser</span>

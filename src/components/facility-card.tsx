@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Facility } from "@/lib/types";
+import { Facility, formatBoardingModes } from "@/lib/types";
 
 type FacilityCardProps = {
   facility: Facility;
@@ -23,7 +23,7 @@ export function FacilityCard({ facility }: FacilityCardProps) {
       </div>
       <p className="description">{facility.description}</p>
       <div className="pillRow">
-        <span className="pill">{facility.boardingModes.includes("box") ? "Box" : "Lösdrift"}</span>
+        <span className="pill">{formatBoardingModes(facility.boardingModes)}</span>
         {facility.hasRidingHouse ? <span className="pill">Ridhus</span> : null}
         {facility.hasPaddock ? <span className="pill">Paddock</span> : null}
         <span className="pill">{facility.openSpots} lediga platser</span>

@@ -20,6 +20,13 @@ export type Facility = {
   sourceLabel: string;
 };
 
+export function formatBoardingModes(modes: BoardingMode[]): string {
+  return modes
+    .map((mode) => (mode === "box" ? "Box" : "Lösdrift"))
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .join(" + ");
+}
+
 export type SearchFilters = {
   q: string;
   municipality: string;

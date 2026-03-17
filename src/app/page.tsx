@@ -1,7 +1,7 @@
 import { FacilityCard } from "@/components/facility-card";
-import { MapSurface } from "@/components/map-surface";
+import { LiveMap } from "@/components/live-map";
 import { SearchPanel } from "@/components/search-panel";
-import { getFacilities } from "@/lib/facilities";
+import { getFacilities, summarizeFacilities } from "@/lib/facilities";
 import { SearchFilters } from "@/lib/types";
 
 type HomeProps = {
@@ -35,6 +35,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
   const filters = normalizeFilters(resolvedSearchParams);
   const facilities = await getFacilities(filters);
+  const summary = summarizeFacilities(facilities);
 
   return (
     <div className="pageStack">
@@ -50,15 +51,15 @@ export default async function Home({ searchParams }: HomeProps) {
         <div className="heroStats">
           <div>
             <strong>{facilities.length}</strong>
-            <span>träffar i den här seed-datan</span>
+            <span>anläggningar i aktuellt resultat</span>
           </div>
           <div>
-            <strong>2 nivåer</strong>
-            <span>auto-listad och verifierad profil</span>
+            <strong>{summary.verifiedCount}</strong>
+            <span>verifierade profiler i träfflistan</span>
           </div>
           <div>
-            <strong>1 arbetsmodell</strong>
-            <span>OSM seed + claim + manuell kvalitetssäkring</span>
+            <strong>{summary.openSpotCount}</strong>
+            <span>öppna platser i seedad data</span>
           </div>
         </div>
       </section>
@@ -66,14 +67,19 @@ export default async function Home({ searchParams }: HomeProps) {
       <SearchPanel filters={filters} />
 
       <section className="contentGrid">
-        <MapSurface facilities={facilities} />
+        <LiveMap facilities={facilities} />
         <div className="resultsPanel">
           <div className="resultsHeader">
             <h2>Stall i sökresultatet</h2>
             <p>
-              Visar grundläggande profilkort som senare ska drivas av Supabase + PostGIS i stället
-              för mock-data.
+              Resultatlistan läser från Supabase när nycklar finns, annars används mock-data som
+              fallback för lokal utveckling.
             </p>
+          </div>
+          <div className="summaryStrip">
+            <span>{summary.municipalities} kommuner</span>
+            <span>{summary.verifiedCount} verifierade</span>
+            <span>{summary.openSpotCount} öppna platser</span>
           </div>
           <div className="resultsList">
             {facilities.map((facility) => (

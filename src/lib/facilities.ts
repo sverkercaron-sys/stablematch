@@ -126,3 +126,15 @@ export async function getFacilityBySlug(slug: string): Promise<Facility | null> 
 
   return mapRow(data as FacilityRow);
 }
+
+export function summarizeFacilities(facilities: Facility[]) {
+  const verifiedCount = facilities.filter((facility) => facility.verified).length;
+  const openSpotCount = facilities.reduce((sum, facility) => sum + facility.openSpots, 0);
+  const municipalities = new Set(facilities.map((facility) => facility.municipality)).size;
+
+  return {
+    verifiedCount,
+    openSpotCount,
+    municipalities
+  };
+}
